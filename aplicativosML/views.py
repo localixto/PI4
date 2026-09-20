@@ -9,9 +9,13 @@ from sklearn.metrics import accuracy_score, classification_report
 
 # Create your views here.
 def algoritmoNB(request):
-    dados = Dados_Apontamentos.objects.values('cidade', 'status')
+    dados = Dados_Apontamentos.objects.values('cidade', 'codigo_cartorio' , 'status')
     df=pd.DataFrame.from_records(dados)
-
+    #Agrupando dados para do status
+    df['status']=df['status'].replace('RECEBIDO PELO CARTÓRIO','PROTESTADO')
+    df['status']=df['status'].replace('PAGO PELO DEVEDOR','REPASSADO AO CREDOR')
+    df['status']=df['status'].replace('RETIRADO','CANCELADO')      
+    
     # converte cidade para números
     unicidade_cidade=df['cidade'].unique()
     cidade_map={cid: i for i, cid in enumerate(unicidade_cidade)}
@@ -25,12 +29,12 @@ def algoritmoNB(request):
     df.drop(columns=['cidade', 'status'])
     #Início do Naive Bayes
     
-    X,y=df['cidade_numero'],df['status_numero']
+    X,y=df[['cidade_numero','codigo_cartorio']],df['status_numero']
 
-    X_treino,X_teste,y_treino,y_teste=train_test_split(X,y, test_size=0.2, random_state=42)
+    X_treino,X_teste,y_treino,y_teste=train_test_split(X,y, test_size=0.2, random_state=42, stratify=y)
     #Converte as variáveis para matrizes, pois a função fit não aceita dados unidimensionais
-    X_treino=np.array(X_treino).reshape(-1,1)
-    X_teste=np.array(X_teste).reshape(-1,1)
+    #X_treino=np.array(X_treino).reshape(-1,1)
+    #X_teste=np.array(X_teste).reshape(-1,1)
 
     modeloNB=MultinomialNB()
     modeloNB.fit(X_treino, y_treino)
