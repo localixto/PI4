@@ -5,11 +5,11 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # Create your views here.
 def algoritmoNB(request):
-    dados = Dados_Apontamentos.objects.values('cidade', 'codigo_cartorio' , 'status')
+    dados = Dados_Apontamentos.objects.values('cpf_cnpj','cidade', 'codigo_cartorio' ,'valor_original', 'valor_enviado', 'status')
     df=pd.DataFrame.from_records(dados)
     #Agrupando dados para do status
     df['status']=df['status'].replace('RECEBIDO PELO CARTÓRIO','PROTESTADO')
@@ -31,7 +31,7 @@ def algoritmoNB(request):
     
     X,y=df[['cidade_numero','codigo_cartorio']],df['status_numero']
 
-    X_treino,X_teste,y_treino,y_teste=train_test_split(X,y, test_size=0.2, random_state=42, stratify=y)
+    X_treino,X_teste,y_treino,y_teste=train_test_split(X,y, test_size=0.33, random_state=42, stratify=y)
     #Converte as variáveis para matrizes, pois a função fit não aceita dados unidimensionais
     #X_treino=np.array(X_treino).reshape(-1,1)
     #X_teste=np.array(X_teste).reshape(-1,1)
@@ -42,6 +42,14 @@ def algoritmoNB(request):
     y_predito=modeloNB.predict(X_teste)
 
     print(f"Acurácia: {accuracy_score(y_teste,y_predito):.2f}")
+
+    df['status'].describe
+    # Calculate the confusion matrix: cm
+    cm = confusion_matrix(y_teste, y_predito) 
+    print("Matriz de confusão\n",cm,"\n")
+
+    print(classification_report(y_teste, y_predito, target_names=['PROTESTADO', 'CANCELADO', 'REPASSADO AO CREDOR' , 'IRREGULAR']))
+   
          
     #print(X_treino)
     #print(y_treino)
