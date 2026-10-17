@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'aplicativosML',
     'import_export',
+    'aplicativoRL',
 ]
 
 MIDDLEWARE = [
